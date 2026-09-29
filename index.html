@@ -1235,7 +1235,7 @@ window.openComplaintCenter=async()=>{
   try{ if(db){ const snap=await getDocs(query(collection(db,"complaints"),orderBy("createdAt","desc"))); rows=snap.docs.map(d=>({id:d.id,...d.data()})); } else rows=JSON.parse(localStorage.getItem("sv_complaints")||"[]").reverse(); }catch(e){ console.warn(e); rows=JSON.parse(localStorage.getItem("sv_complaints")||"[]").reverse(); }
   const typeOptions=["Toutes","Contestation connexion et paiement","Non-paiement","Demande de facture","Autre"];
   const statuses=["En cours","Remonté","Traité","Rejeté"];
-  const html=`<div class="notice"><b>🔗 Lien public :</b> ${esc(complaintLink())}<br><span class="mini">Envoyez ce lien aux Super Vendors. Ils n'ont pas besoin de se connecter à l'espace administrateur.</span></div><div style="height:12px"></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>${rows.length} plainte(s)</b><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-small" onclick="exportComplaintsExcel(false)">📊 Exporter Excel</button><button class="btn btn-small btn-green" onclick="exportComplaintsExcel(true)">📤 Partager Excel</button><button class="btn btn-small btn-green" onclick="shareComplaintLink()">💬 Partager le lien</button></div></div><div style="height:10px"></div>${rows.length?rows.map(c=>`<div class="card" style="margin-bottom:10px;padding:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><b>${esc(c.name||"SV")}</b><div class="mini">${esc(c.phone||"")} ${c.x3?"• X3 "+esc(c.x3):""}</div>${c.trackingCode?`<div class="mini" style="margin-top:3px">Code de suivi : <b>${esc(c.trackingCode)}</b></div>`:""}</div><span class="pill ${c.status==='Traité'?'ok':c.status==='Rejeté'?'bad':'wait'}">${esc(c.status||"En cours")}</span></div><div style="margin-top:8px"><b>${esc(c.type||"Autre")}</b>${c.reference?`<div class="mini">Réf. : ${esc(c.reference)}</div>`:""}<div style="margin-top:6px;line-height:1.45;font-size:13px">${esc(c.message||"")}</div></div><div class="actions" style="align-items:center"><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(c.phone||"")}')">WhatsApp</button><select class="input" style="width:auto;min-width:145px;padding:7px 10px" onchange="updateComplaintStatus('${esc(c.id||"")}',this.value)">${statuses.map(st=>`<option value="${esc(st)}" ${c.status===st?'selected':''}>${esc(st)}</option>`).join("")}</select></div></div>`).join(""):`<div class="empty">Aucune plainte enregistrée.</div>`}`;
+  const html=`<div class="notice"><b>🔗 Lien public :</b> ${esc(complaintLink())}<br><span class="mini">Envoyez ce lien aux Super Vendors. Ils n'ont pas besoin de se connecter à l'espace administrateur.</span></div><div style="height:12px"></div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>${rows.length} plainte(s)</b><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-small" onclick="exportComplaintsExcel(false)">📊 Exporter Excel</button><button class="btn btn-small btn-green" onclick="exportComplaintsExcel(true)">📤 Partager Excel</button><button class="btn btn-small btn-green" onclick="shareComplaintLink()">💬 Partager le lien</button></div></div><div style="height:10px"></div>${rows.length?rows.map(c=>`<div class="card" style="margin-bottom:10px;padding:13px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><b>${esc(c.name||"SV")}</b><div class="mini">${esc(c.phone||"")} ${c.x3?"• X3 "+esc(c.x3):""}</div>${c.trackingCode?`<div class="mini" style="margin-top:3px">Code de suivi : <b>${esc(c.trackingCode)}</b></div>`:""}</div><span class="pill ${c.status==='Traité'?'ok':c.status==='Rejeté'?'bad':'wait'}">${esc(c.status||"En cours")}</span></div><div style="margin-top:8px"><b>${esc(c.type||"Autre")}</b>${c.reference?`<div class="mini">Réf. : ${esc(c.reference)}</div>`:""}<div style="margin-top:6px;line-height:1.45;font-size:13px">${esc(c.message||"")}</div></div><div class="actions" style="align-items:center"><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(c.phone||"")}',event)">WhatsApp</button><select class="input" style="width:auto;min-width:145px;padding:7px 10px" onchange="updateComplaintStatus('${esc(c.id||"")}',this.value)">${statuses.map(st=>`<option value="${esc(st)}" ${c.status===st?'selected':''}>${esc(st)}</option>`).join("")}</select></div></div>`).join(""):`<div class="empty">Aucune plainte enregistrée.</div>`}`;
   openModal("📩 Centre des plaintes",html);
 };
 
@@ -1553,9 +1553,9 @@ window.render=()=>{
  }).join(""):`<tr><td colspan="8" class="empty">Aucun résultat.</td></tr>`;
  const inactive=vendors.map(v=>({v,s:summary[v.x3]||{monthBought:0,cumulativeBought:0,cumulativeConnected:0}})).filter(x=>Number(x.s.monthBought||0)===0).sort((a,b)=>a.v.name.localeCompare(b.v.name));
  $("inactiveCount").textContent=`${inactive.length} inactif(s)`;
- $("inactiveList").innerHTML=inactive.length?inactive.map(({v,s})=>`<div class="item"><div class="item-top"><b>${esc(v.name)}</b><span class="pill bad">INACTIF</span></div><div class="mini" style="margin-top:5px">X3 : ${esc(v.x3)} • SIM achetées ce mois : ${Number(s.monthBought||0)}</div><div class="actions"><button class="btn btn-small btn-green" onclick="quick('${esc(v.x3)}')">Saisir SIM</button><button class="btn btn-small" style="background:#eaf2ff;color:#2362a5" onclick="openCallApp('${esc(v.phone)}')">☎ Appeler</button><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(v.phone)}')">WhatsApp</button></div></div>`).join(''):`<div class="empty">Aucun Super Vendor inactif ce mois.</div>`;
+ $("inactiveList").innerHTML=inactive.length?inactive.map(({v,s})=>`<div class="item"><div class="item-top"><b>${esc(v.name)}</b><span class="pill bad">INACTIF</span></div><div class="mini" style="margin-top:5px">X3 : ${esc(v.x3)} • SIM achetées ce mois : ${Number(s.monthBought||0)}</div><div class="actions"><button class="btn btn-small btn-green" onclick="quick('${esc(v.x3)}')">Saisir SIM</button><button class="btn btn-small" style="background:#eaf2ff;color:#2362a5" onclick="openCallApp('${esc(v.phone)}')">☎ Appeler</button><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(v.phone)}',event)">WhatsApp</button></div></div>`).join(''):`<div class="empty">Aucun Super Vendor inactif ce mois.</div>`;
  const candidates=vendors.map(v=>{const m=by[v.x3]||{b:0,c:0},s=summary[v.x3]||{cumulativeBought:0,cumulativeConnected:0},tg=getTargets(v,s.cumulativeBought);return {v,m,s,tg,score:Math.max(0,tg.c-s.cumulativeConnected)}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
- $("boosterList").innerHTML=candidates.length?candidates.map(x=>`<div class="item"><div class="item-top"><span>${esc(x.v.name)}</span><span class="pill wait">+${x.m.c} connexion(s) aujourd'hui</span></div><div class="mini" style="margin-top:5px">SIM achetées aujourd'hui : ${x.m.b} • cumul acheté : ${x.s.cumulativeBought} • target ${x.tg.rate}% = ${x.tg.c} connexions • reste : ${x.score}</div><div class="actions"><button class="btn btn-small btn-green" onclick="quick('${esc(x.v.x3)}')">Saisir</button><button class="btn btn-small" style="background:#eaf2ff;color:#2362a5" onclick="openCallApp('${esc(x.v.phone)}')">☎ Appeler</button><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(x.v.phone)}')">WhatsApp</button></div></div>`).join(""):`<div class="empty">Tous les vendors ont atteint leur target de connexion.</div>`;
+ $("boosterList").innerHTML=candidates.length?candidates.map(x=>`<div class="item"><div class="item-top"><span>${esc(x.v.name)}</span><span class="pill wait">+${x.m.c} connexion(s) aujourd'hui</span></div><div class="mini" style="margin-top:5px">SIM achetées aujourd'hui : ${x.m.b} • cumul acheté : ${x.s.cumulativeBought} • target ${x.tg.rate}% = ${x.tg.c} connexions • reste : ${x.score}</div><div class="actions"><button class="btn btn-small btn-green" onclick="quick('${esc(x.v.x3)}')">Saisir</button><button class="btn btn-small" style="background:#eaf2ff;color:#2362a5" onclick="openCallApp('${esc(x.v.phone)}')">☎ Appeler</button><button class="btn btn-small" style="background:#e8f8ef;color:#08744f" onclick="openWhatsAppApp('${esc(x.v.phone)}',event)">WhatsApp</button></div></div>`).join(""):`<div class="empty">Tous les vendors ont atteint leur target de connexion.</div>`;
  $("goalBought").textContent=`${totalB} SIM achetées aujourd'hui`; $("goalConnected").textContent=`${totalC} connexions aujourd'hui / target cumulé ${totalTargetC}`;
  $("goalBoughtBar").style.width="100%"; $("goalConnectedBar").style.width=Math.min(100,Math.round((Object.values(summary).reduce((n,m)=>n+m.cumulativeConnected,0))/Math.max(1,totalTargetC)*100))+"%";
 };
@@ -1634,22 +1634,31 @@ modal.classList.add('show');
 };
 
 window.openCallApp=function(phone,countryCode){
- const run=(selectedCode)=>{
-  const p=buildInternationalPhone(selectedCode||countryCode||'243',phone);
-  if(!p){ alert('Aucun numéro de téléphone valide pour ce contact.'); return; }
-  // Navigation directe vers le protocole téléphonique depuis le clic utilisateur.
-  // Android/iOS peuvent ainsi transmettre tel: au composeur configuré sur l'appareil.
-  window.location.href='tel:+'+p;
- };
+ const run=(cc)=>{ const p=buildInternationalPhone(cc||countryCode||'243',phone); const link=document.createElement('a'); link.href=`tel:+${p}`; link.style.display='none'; document.body.appendChild(link); link.click(); link.remove(); };
  countryCode ? run(countryCode) : chooseCountryCode(run);
 };
-window.openWhatsAppApp=function(phone,countryCode){
- // Lien HTTPS WhatsApp, séparé du protocole téléphonique.
+window.openWhatsAppApp=function(phone,eventOrCountryCode){
+ // Garde le clic indépendant du bouton Appeler et des éléments parents.
+ if(eventOrCountryCode && typeof eventOrCountryCode.preventDefault==='function'){
+   eventOrCountryCode.preventDefault();
+   eventOrCountryCode.stopPropagation();
+ }
  const run=(cc)=>{
-  const p=buildInternationalPhone(cc||countryCode||'243',phone);
-  window.open(`https://wa.me/${p}`,'_blank');
+   const p=buildInternationalPhone(cc||'243',phone);
+   // Demande l'ouverture de l'application WhatsApp, sans redirection vers wa.me.
+   const isAndroid=/Android/i.test(navigator.userAgent||'');
+   const url=isAndroid
+     ? `intent://send?phone=${encodeURIComponent(p)}#Intent;scheme=whatsapp;package=com.whatsapp;end`
+     : `whatsapp://send?phone=${encodeURIComponent(p)}`;
+   const link=document.createElement('a');
+   link.href=url;
+   link.style.display='none';
+   document.body.appendChild(link);
+   link.click();
+   link.remove();
  };
- countryCode ? run(countryCode) : chooseCountryCode(run);
+ if(typeof eventOrCountryCode==='string' && eventOrCountryCode) run(eventOrCountryCode);
+ else chooseCountryCode(run);
 };
 
 window.quick=x3=>{ $("modal").classList.add("show"); $("modalTitle").textContent="📲 Saisie rapide"; $("modalBody").innerHTML=`<div class="notice"><b>${esc(vendors.find(v=>v.x3===x3)?.name||x3)}</b></div><div style="height:12px"></div><div class="formgrid"><div><label>SIM achetées</label><input id="aBought" class="input" type="number" min="0" value="0"></div><div><label>SIM connectées</label><input id="aConnected" class="input" type="number" min="0" value="0"></div><div class="full"><label>Note</label><input id="aNote" class="input"></div><div class="full" style="text-align:right"><button class="btn btn-green" onclick="saveQuick('${esc(x3)}')">Enregistrer</button></div></div>`};
